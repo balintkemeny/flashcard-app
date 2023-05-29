@@ -1,9 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"log"
+	"net/http"
 	"os"
+	"strconv"
 )
 
 type application struct {
@@ -15,12 +16,25 @@ func main() {
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 
+	c, err := NewConfig()
+	if err != nil {
+		errorLog.Fatalf("cannot create config: %s", err)
+	}
+
+	addr := ":" + strconv.Itoa(c.Port)
+
 	app := &application{
 		errorLog: errorLog,
 		infoLog:  infoLog,
 	}
 
-	_ = app
+	srv := http.Server{
+		Addr:     addr,
+		Handler:  app.routes(),
+		ErrorLog: app.errorLog,
+	}
 
-	fmt.Println("Hello, World!")
+	infoLog.Printf("starting server at: %s", addr)
+	err = srv.ListenAndServe()
+	errorLog.Fatal(err)
 }
