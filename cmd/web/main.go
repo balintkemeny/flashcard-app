@@ -1,15 +1,21 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
+
+	"github.com/balintkemeny/flashcard-app/internal/models"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type application struct {
-	errorLog *log.Logger
-	infoLog  *log.Logger
+	errorLog  *log.Logger
+	infoLog   *log.Logger
+	cardModel *models.CardModel
 }
 
 func main() {
@@ -23,9 +29,15 @@ func main() {
 
 	addr := ":" + strconv.Itoa(c.Port)
 
+	db, err := mongo.Connect(context.Background(), options.Client().ApplyURI(c.MongoDbURI))
+	if err != nil {
+		errorLog.Fatalf("cannot connect to database: %s", err)
+	}
+
 	app := &application{
-		errorLog: errorLog,
-		infoLog:  infoLog,
+		errorLog:  errorLog,
+		infoLog:   infoLog,
+		cardModel: &models.CardModel{DB: db},
 	}
 
 	srv := http.Server{

@@ -8,7 +8,8 @@ import (
 )
 
 type config struct {
-	Port int `env:"PORT,default=3000"`
+	Port       int    `env:"PORT,default=3000"`
+	MongoDbURI string `env:"MONGODB_URI,required"`
 }
 
 func NewConfig() (*config, error) {
