@@ -22,7 +22,7 @@ type CardModel struct {
 func (cm *CardModel) InsertCardIntoSet(c Card, setName string) error {
 	coll := cm.DB.Collection(setName)
 
-	insertResult, err := coll.InsertOne(
+	_, err := coll.InsertOne(
 		cm.Ctx,
 		c,
 	)
@@ -30,8 +30,6 @@ func (cm *CardModel) InsertCardIntoSet(c Card, setName string) error {
 	if err != nil {
 		return fmt.Errorf("cannot insert document into collection: %w", err)
 	}
-
-	fmt.Println(insertResult)
 
 	return nil
 }
@@ -42,11 +40,11 @@ func (cm *CardModel) GetAllCardsFromSet(setName string) ([]Card, error) {
 
 	cursor, err := coll.Find(cm.Ctx, bson.M{})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot get documents: %w", err)
 	}
 
 	if err := cursor.All(cm.Ctx, &cards); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot unmarshal values: %w", err)
 	}
 
 	return cards, nil
