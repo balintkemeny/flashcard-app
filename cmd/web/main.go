@@ -28,8 +28,9 @@ func main() {
 	}
 
 	addr := ":" + strconv.Itoa(c.Port)
+	ctx := context.Background()
 
-	db, err := mongo.Connect(context.Background(), options.Client().ApplyURI(c.MongoDbURI))
+	db, err := mongo.Connect(ctx, options.Client().ApplyURI(c.MongoDBURI))
 	if err != nil {
 		errorLog.Fatalf("cannot connect to database: %s", err)
 	}
@@ -37,7 +38,7 @@ func main() {
 	app := &application{
 		errorLog:  errorLog,
 		infoLog:   infoLog,
-		cardModel: &models.CardModel{DB: db, DBName: "cards"},
+		cardModel: &models.CardModel{DB: db.Database(c.CardsDBName), Ctx: ctx},
 	}
 
 	srv := http.Server{

@@ -15,15 +15,15 @@ type Card struct {
 }
 
 type CardModel struct {
-	DB     *mongo.Client
-	DBName string
+	DB  *mongo.Database
+	Ctx context.Context
 }
 
 func (cm *CardModel) InsertCardIntoSet(c Card, setName string) error {
-	coll := cm.DB.Database(cm.DBName).Collection(setName)
+	coll := cm.DB.Collection(setName)
 
 	insertResult, err := coll.InsertOne(
-		context.TODO(),
+		cm.Ctx,
 		c,
 	)
 
@@ -37,15 +37,15 @@ func (cm *CardModel) InsertCardIntoSet(c Card, setName string) error {
 }
 
 func (cm *CardModel) GetAllCardsFromSet(setName string) ([]Card, error) {
-	coll := cm.DB.Database(cm.DBName).Collection(setName)
+	coll := cm.DB.Collection(setName)
 	var cards []Card
 
-	cursor, err := coll.Find(context.TODO(), bson.M{})
+	cursor, err := coll.Find(cm.Ctx, bson.M{})
 	if err != nil {
 		return nil, err
 	}
 
-	if err := cursor.All(context.TODO(), &cards); err != nil {
+	if err := cursor.All(cm.Ctx, &cards); err != nil {
 		return nil, err
 	}
 
