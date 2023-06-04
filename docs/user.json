@@ -1,6 +1,0 @@
-{
-    "name": "John Doe",
-    "username": "johndoe",
-    "password": "sha-256-encoded-something",
-    "level": 1
-}
