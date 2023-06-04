@@ -37,7 +37,7 @@ func main() {
 	app := &application{
 		errorLog:  errorLog,
 		infoLog:   infoLog,
-		cardModel: &models.CardModel{DB: db},
+		cardModel: &models.CardModel{DB: db, DBName: "cards"},
 	}
 
 	srv := http.Server{
