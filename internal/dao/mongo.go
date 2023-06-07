@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -44,6 +45,33 @@ func (m *Mongo) GetAll(collectionName string, dest interface{}) error {
 
 	if err := cursor.All(m.Ctx, dest); err != nil {
 		return errors.Join(ErrUnmarshal, err)
+	}
+
+	return nil
+}
+
+func (m *Mongo) DeleteByID(collectionName, documentID string) error {
+	coll := m.DB.Collection(collectionName)
+
+	oid, err := primitive.ObjectIDFromHex(documentID)
+	if err != nil {
+		return err
+	}
+
+	_, err = coll.DeleteOne(m.Ctx, bson.M{"_id": oid})
+	if err != nil {
+		return fmt.Errorf("%w %s: %w", ErrDeleteDocument, collectionName, err)
+	}
+
+	return nil
+}
+
+func (m *Mongo) DeleteByKeyVal(collectionName, key string, value interface{}) error {
+	coll := m.DB.Collection(collectionName)
+
+	_, err := coll.DeleteMany(m.Ctx, bson.M{key: value})
+	if err != nil {
+		return fmt.Errorf("%w %s: %w", ErrDeleteDocument, collectionName, err)
 	}
 
 	return nil
