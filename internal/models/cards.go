@@ -1,11 +1,7 @@
 package models
 
 import (
-	"context"
-	"fmt"
-
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
+	"github.com/balintkemeny/flashcard-app/internal/dao"
 )
 
 type Card struct {
@@ -14,37 +10,20 @@ type Card struct {
 	Level   int      `bson:"level"`
 }
 
-type CardModel struct {
-	DB  *mongo.Database
-	Ctx context.Context
+type CardRepository struct {
+	Dao dao.DocumentDBAdapter
 }
 
-func (cm *CardModel) InsertCardIntoSet(c Card, setName string) error {
-	coll := cm.DB.Collection(setName)
-
-	_, err := coll.InsertOne(
-		cm.Ctx,
-		c,
-	)
-
-	if err != nil {
-		return fmt.Errorf("cannot insert document into collection: %w", err)
-	}
-
-	return nil
+func (cm *CardRepository) InsertCardIntoSet(c Card, setName string) error {
+	return cm.Dao.InsertOne(setName, c)
 }
 
-func (cm *CardModel) GetAllCardsFromSet(setName string) ([]Card, error) {
-	coll := cm.DB.Collection(setName)
-	var cards []Card
+func (cm *CardRepository) GetAllCardsFromSet(setName string) ([]Card, error) {
+	cards := []Card{}
 
-	cursor, err := coll.Find(cm.Ctx, bson.M{})
+	err := cm.Dao.GetAll(setName, &cards)
 	if err != nil {
-		return nil, fmt.Errorf("cannot get documents: %w", err)
-	}
-
-	if err := cursor.All(cm.Ctx, &cards); err != nil {
-		return nil, fmt.Errorf("cannot unmarshal values: %w", err)
+		return nil, err
 	}
 
 	return cards, nil

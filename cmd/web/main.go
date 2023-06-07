@@ -7,15 +7,16 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/balintkemeny/flashcard-app/internal/dao"
 	"github.com/balintkemeny/flashcard-app/internal/models"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type application struct {
-	errorLog  *log.Logger
-	infoLog   *log.Logger
-	cardModel *models.CardModel
+	errorLog       *log.Logger
+	infoLog        *log.Logger
+	cardRepository *models.CardRepository
 }
 
 func main() {
@@ -30,15 +31,17 @@ func main() {
 	addr := ":" + strconv.Itoa(c.Port)
 	ctx := context.Background()
 
-	db, err := mongo.Connect(ctx, options.Client().ApplyURI(c.MongoDBURI))
+	mongoClient, err := mongo.Connect(ctx, options.Client().ApplyURI(c.MongoDBURI))
 	if err != nil {
 		errorLog.Fatalf("cannot connect to database: %s", err)
 	}
 
+	cardDao := &dao.Mongo{DB: mongoClient.Database(c.CardsDBName), Ctx: ctx}
+
 	app := &application{
-		errorLog:  errorLog,
-		infoLog:   infoLog,
-		cardModel: &models.CardModel{DB: db.Database(c.CardsDBName), Ctx: ctx},
+		errorLog:       errorLog,
+		infoLog:        infoLog,
+		cardRepository: &models.CardRepository{Dao: cardDao},
 	}
 
 	srv := http.Server{
