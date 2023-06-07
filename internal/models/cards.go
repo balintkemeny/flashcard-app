@@ -1,6 +1,8 @@
 package models
 
 import (
+	"strings"
+
 	"github.com/balintkemeny/flashcard-app/internal/dao"
 )
 
@@ -14,17 +16,21 @@ type CardRepository struct {
 	Dao dao.DocumentDBAdapter
 }
 
-func (cm *CardRepository) InsertCardIntoSet(c Card, setName string) error {
-	return cm.Dao.InsertOne(setName, c)
+func (r *CardRepository) InsertCard(c Card, userName, cardSetName string) error {
+	return r.Dao.InsertOne(getCollectionName(userName, cardSetName), c)
 }
 
-func (cm *CardRepository) GetAllCardsFromSet(setName string) ([]Card, error) {
+func (r *CardRepository) GetAllCards(userName, cardSetName string) ([]Card, error) {
 	cards := []Card{}
 
-	err := cm.Dao.GetAll(setName, &cards)
+	err := r.Dao.GetAll(getCollectionName(userName, cardSetName), &cards)
 	if err != nil {
 		return nil, err
 	}
 
 	return cards, nil
+}
+
+func getCollectionName(userName, cardSetName string) string {
+	return strings.Join([]string{userName, cardSetName}, "-")
 }
