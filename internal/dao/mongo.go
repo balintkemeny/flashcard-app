@@ -2,6 +2,7 @@ package dao
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -27,7 +28,7 @@ func (m *Mongo) InsertOne(collectionName string, v interface{}) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("cannot insert document into collection: %w", err)
+		return fmt.Errorf("%w %s: %w", ErrInsertDocument, collectionName, err)
 	}
 
 	return nil
@@ -38,11 +39,11 @@ func (cm *Mongo) GetAll(collectionName string, dest interface{}) error {
 
 	cursor, err := coll.Find(cm.Ctx, bson.M{})
 	if err != nil {
-		return fmt.Errorf("cannot get documents: %w", err)
+		return fmt.Errorf("%w %s: %w", ErrGetDocuments, collectionName, err)
 	}
 
 	if err := cursor.All(cm.Ctx, dest); err != nil {
-		return fmt.Errorf("cannot unmarshal values: %w", err)
+		return errors.Join(ErrUnmarshal, err)
 	}
 
 	return nil
